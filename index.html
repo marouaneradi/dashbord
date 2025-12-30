@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord Assurance Auto</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- SheetJS (xlsx) pour lire les fichiers Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 2rem;
+            border-radius: 0 0 20px 20px;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            border: none;
+        }
+        .card-header {
+            background-color: #2a5298;
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+        }
+        .file-upload-area {
+            border: 3px dashed #2a5298;
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            background-color: #f8f9ff;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .file-upload-area:hover {
+            background-color: #eef2ff;
+            border-color: #1e3c72;
+        }
+        .file-upload-area.drag-over {
+            background-color: #dbe4ff;
+            border-color: #0d6efd;
+        }
+        .file-info {
+            background-color: #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+            display: none;
+        }
+        .file-info.show {
+            display: block;
+        }
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .table th {
+            background-color: #1e3c72;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-weight: 600;
+        }
+        .table td {
+            padding: 12px 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid #eaeaea;
+        }
+        .table tbody tr {
+            transition: all 0.2s;
+        }
+        .table tbody tr:hover {
+            background-color: #f1f7ff;
+            transform: scale(1.002);
+        }
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(30, 60, 114, 0.03);
+        }
+        .badge {
+            padding: 6px 12px;
+            font-size: 0.85em;
+            border-radius: 20px;
+        }
+        .indicator-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 15px;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .indicator-card:hover {
+            transform: translateY(-5px);
+        }
+        .indicator-card h2 {
+            color: #2a5298;
+            font-size: 2.5rem;
+            margin-bottom: 0;
+            font-weight: 700;
+        }
+        .indicator-card p {
+            color: #6c757d;
+            font-weight: 500;
+            margin-bottom: 0;
+        }
+        .repartition-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 150px;
+            padding: 20px 0;
+        }
+        .repartition-item {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            min-width: 100px;
+        }
+        .repartition-item:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-5px);
+        }
+        .repartition-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .repartition-count {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1e3c72;
+        }
+        .repartition-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .assurance-tier {
+            color: #ffc107;
+        }
+        .assurance-tous-risques {
+            color: #198754;
+        }
+        .vehicule-voiture {
+            color: #0d6efd;
+        }
+        .vehicule-moto {
+            color: #dc3545;
+        }
+        .vehicule-camion {
+            color: #6f42c1;
+        }
+        .btn-reset {
+            background: linear-gradient(135deg, #6c757d, #495057);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-reset:hover {
+            background: linear-gradient(135deg, #495057, #343a40);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .btn-import {
+            background: linear-gradient(135deg, #198754, #157347);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-import:hover {
+            background: linear-gradient(135deg, #157347, #0f5c3a);
+            transform: translateY(-2px);
+        }
+        .filter-actions {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+        }
+        .footer {
+            background-color: #1e3c72;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            margin-top: 30px;
+        }
+        .counter {
+            display: inline-block;
+        }
+        .alert-example {
+            border-left: 4px solid #0d6efd;
+        }
+        .data-section {
+            display: none;
+        }
+        .data-section.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid p-0">
+    <!-- En-tête -->
+    <div class="header text-center animate__animated animate__fadeIn">
+        <h1>📊 Tableau de Bord Assurance Auto</h1>
+        <p class="lead">Importez votre fichier Excel et générez automatiquement le dashboard</p>
+        <p class="small">Agence : Assurance Auto Ouarzazate | Année : 2025</p>
+    </div>
+
+    <div class="container mt-4">
+        <!-- Section Import Excel -->
+        <div class="card mb-4 animate__animated animate__fadeIn">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-file-earmark-excel-fill me-2"></i>Importation du fichier Excel</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="file-upload-area" id="dropArea">
+                            <i class="bi bi-cloud-upload-fill" style="font-size: 4rem; color: #2a5298;"></i>
+                            <h4 class="mt-3">Déposez votre fichier Excel ici</h4>
+                            <p class="text-muted">ou cliquez pour sélectionner un fichier</p>
+                            <p class="small text-muted">Formats supportés: .xlsx, .xls, .csv</p>
+                            <button class="btn btn-import mt-3" id="selectFileBtn">
+                                <i class="bi bi-folder2-open me-2"></i>Sélectionner un fichier
+                            </button>
+                            <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display: none;">
+                        </div>
+                        <div class="file-info mt-3" id="fileInfo">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-file-earmark-excel text-success me-2"></i>
+                                    <span id="fileName">Aucun fichier sélectionné</span>
+                                    <small class="text-muted d-block" id="fileSize"></small>
+                                </div>
+                                <button class="btn btn-sm btn-outline-danger" id="removeFileBtn">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="alert alert-example alert-info">
+                            <h6><i class="bi bi-info-circle-fill me-2"></i>Format Excel requis</h6>
+                            <p class="mb-1 small">Votre fichier doit contenir ces colonnes:</p>
+                            <ul class="small mb-0">
+                                <li>Nom & Prénom</li>
+                                <li>CIN</li>
+                                <li>Ville</li>
+                                <li>Type_Vehicule (Voiture/Moto/Camion)</li>
+                                <li>Marque</li>
+                                <li>Année</li>
+                                <li>Valeur (MAD)</li>
+                                <li>Type_Assurance (Tiers/Tous Risques)</li>
+                                <li>Prime_Base (MAD)</li>
+                                <li>Date_Souscription</li>
+                            </ul>
+                            <hr>
+                            <p class="mb-0 small">
+                                <a href="javascript:void(0);" id="downloadSample">Télécharger un exemple</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sections des données (masquées initialement) -->
+        <div class="data-section" id="dataSection">
+            <!-- Indicateurs clés -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="indicator-card animate__animated animate__fadeInUp">
+                        <h2 class="counter" id="totalContrats">0</h2>
+                        <p>CONTRATS</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="indicator-card animate__animated animate__fadeInUp animate__delay-1s">
+                        <h2 class="counter" id="primeMoyenne">0</h2>
+                        <p>PRIME MOYENNE (MAD)</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="indicator-card animate__animated animate__fadeInUp animate__delay-2s">
+                        <h2 class="counter" id="primeTotale">0</h2>
+                        <p>PRIME TOTALE (MAD)</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="indicator-card animate__animated animate__fadeInUp animate__delay-3s">
+                        <h2 class="counter" id="valeurTotale">0</h2>
+                        <p>VALEUR VÉHICULES (MAD)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtres -->
+            <div class="card mb-4 animate__animated animate__fadeIn">
+                <div class="card-header">
+                    <h5 class="mb-0">🔍 Filtrage des données</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row filters">
+                        <div class="col-md-3">
+                            <label for="ville" class="form-label">Ville</label>
+                            <select class="form-select" id="ville">
+                                <option selected>Toutes les villes</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="typeAssurance" class="form-label">Type d'assurance</label>
+                            <select class="form-select" id="typeAssurance">
+                                <option selected>Tous les types</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="typeVehicule" class="form-label">Type de véhicule</label>
+                            <select class="form-select" id="typeVehicule">
+                                <option selected>Tous les types</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 filter-actions">
+                            <button class="btn btn-reset w-100" id="resetFilters">
+                                <i class="bi bi-arrow-clockwise me-2"></i>Réinitialiser
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tableau des contrats -->
+            <div class="card mb-4 animate__animated animate__fadeIn">
+                <div class="card-header">
+                    <h5 class="mb-0">📄 Liste des contrats</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped" id="contratsTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nom & Prénom</th>
+                                    <th>CIN</th>
+                                    <th>Ville</th>
+                                    <th>Type Véhicule</th>
+                                    <th>Marque</th>
+                                    <th>Année</th>
+                                    <th>Valeur (MAD)</th>
+                                    <th>Type Assurance</th>
+                                    <th>Prime Base (MAD)</th>
+                                    <th>Date Souscription</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contratsBody">
+                                <!-- Les données seront insérées ici par JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graphiques de répartition -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card animate__animated animate__fadeInLeft">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-pie-chart-fill me-2"></i>Répartition par type d'assurance</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="repartition-container" id="repartitionAssurance">
+                                <!-- Généré dynamiquement -->
+                            </div>
+                            <div class="text-center mt-3">
+                                <small class="text-muted">Total: <span class="counter" id="totalAssurance">0</span> contrats d'assurance</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card animate__animated animate__fadeInRight">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-bar-chart-fill me-2"></i>Répartition par type de véhicule</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="repartition-container" id="repartitionVehicule">
+                                <!-- Généré dynamiquement -->
+                            </div>
+                            <div class="text-center mt-3">
+                                <small class="text-muted">Total: <span class="counter" id="totalVehicules">0</span> contrats véhicules</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mention IA -->
+        <div class="alert alert-info animate__animated animate__fadeInUp">
+            <strong>Remarque :</strong> Cette page a été développée avec l'aide de l'IA DeepSeek pour la génération du code HTML/CSS/JS et l'intégration des fonctionnalités demandées.
+        </div>
+
+    </div>
+
+    <!-- Pied de page -->
+    <div class="footer">
+        <p>© 2025 Assurance Auto Ouarzazate - Tous droits réservés | Examen Culture et Techniques Avancée du Numérique - DEVOWFS201</p>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+    // Code généré avec l'aide de DeepSeek AI
+    $(document).ready(function() {
+        let excelData = [];
+        let villes = new Set();
+        let assurances = new Set();
+        let vehicules = new Set();
+
+        // Données d'exemple par défaut (pour démonstration)
+        const defaultData = [
+            {
+                "Nom_Prénom": "El Amrani Youssef",
+                "CIN": "AB00001",
+                "Ville": "Ouarzazate",
+                "Type_Vehicule": "Moto",
+                "Marque": "Renault",
+                "Année": "2011",
+                "Valeur": 93000,
+                "Type_Assurance": "Tiers",
+                "Prime_Base": 1560,
+                "Date_Souscription": "02/01/2025"
+            },
+            {
+                "Nom_Prénom": "Alt Lahcen Fatima",
+                "CIN": "AB00002",
+                "Ville": "Ouarzazate",
+                "Type_Vehicule": "Camion",
+                "Marque": "Toyota",
+                "Année": "2012",
+                "Valeur": 96000,
+                "Type_Assurance": "Tous Risques",
+                "Prime_Base": 1620,
+                "Date_Souscription": "03/01/2025"
+            },
+            {
+                "Nom_Prénom": "Benali Ahmed",
+                "CIN": "AB00003",
+                "Ville": "Marrakech",
+                "Type_Vehicule": "Voiture",
+                "Marque": "Hyundai",
+                "Année": "2013",
+                "Valeur": 99000,
+                "Type_Assurance": "Tiers",
+                "Prime_Base": 1680,
+                "Date_Souscription": "04/01/2025"
+            },
+            {
+                "Nom_Prénom": "El Vafael Salma",
+                "CIN": "AB00004",
+                "Ville": "Babar",
+                "Type_Vehicule": "Moto",
+                "Marque": "Ford",
+                "Année": "2014",
+                "Valeur": 100000,
+                "Type_Assurance": "Tiers",
+                "Prime_Base": 1740,
+                "Date_Souscription": "05/01/2025"
+            },
+            {
+                "Nom_Prénom": "Khalid Benani",
+                "CIN": "AB00005",
+                "Ville": "Ouarzazate",
+                "Type_Vehicule": "Voiture",
+                "Marque": "Peugeot",
+                "Année": "2020",
+                "Valeur": 150000,
+                "Type_Assurance": "Tous Risques",
+                "Prime_Base": 2500,
+                "Date_Souscription": "10/01/2025"
+            },
+            {
+                "Nom_Prénom": "Fatima Zahra",
+                "CIN": "AB00006",
+                "Ville": "Marrakech",
+                "Type_Vehicule": "Camion",
+                "Marque": "Mercedes",
+                "Année": "2018",
+                "Valeur": 300000,
+                "Type_Assurance": "Tous Risques",
+                "Prime_Base": 3800,
+                "Date_Souscription": "15/01/2025"
+            }
+        ];
+
+        // Animation des compteurs
+        function animateCounter(element, target) {
+            const duration = 1500;
+            const step = Math.ceil(target / (duration / 30));
+            let current = 0;
+            
+            const timer = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    element.textContent = formatNumber(target);
+                    clearInterval(timer);
+                } else {
+                    element.textContent = formatNumber(current);
+                }
+            }, 30);
+        }
+
+        // Formater les nombres
+        function formatNumber(num) {
+            if (num >= 1000000) {
+                return (num / 1000000).toFixed(2) + 'M';
+            } else if (num >= 1000) {
+                return num.toLocaleString();
+            }
+            return num.toString();
+        }
+
+        // Initialiser tous les compteurs
+        function initCounters(data) {
+            const totalContrats = data.length;
+            const primeTotale = data.reduce((sum, item) => sum + (item.Prime_Base || 0), 0);
+            const primeMoyenne = totalContrats > 0 ? Math.round(primeTotale / totalContrats) : 0;
+            const valeurTotale = data.reduce((sum, item) => sum + (item.Valeur || 0), 0);
+
+            animateCounter(document.getElementById('totalContrats'), totalContrats);
+            animateCounter(document.getElementById('primeMoyenne'), primeMoyenne);
+            animateCounter(document.getElementById('primeTotale'), primeTotale);
+            animateCounter(document.getElementById('valeurTotale'), valeurTotale);
+        }
+
+        // Générer le tableau HTML
+        function generateTable(data) {
+            const tbody = document.getElementById('contratsBody');
+            tbody.innerHTML = '';
+
+            data.forEach((item, index) => {
+                const row = document.createElement('tr');
+                const typeVehiculeIcon = getVehiculeIcon(item.Type_Vehicule);
+                const typeVehiculeColor = getVehiculeColor(item.Type_Vehicule);
+                const assuranceBadge = getAssuranceBadge(item.Type_Assurance);
+
+                row.innerHTML = `
+                    <td><span class="badge bg-primary">${index + 1}</span></td>
+                    <td><strong>${item.Nom_Prénom}</strong></td>
+                    <td><code>${item.CIN}</code></td>
+                    <td><span class="badge bg-info">${item.Ville}</span></td>
+                    <td><i class="bi ${typeVehiculeIcon} me-1" style="color: ${typeVehiculeColor};"></i>${item.Type_Vehicule}</td>
+                    <td>${item.Marque}</td>
+                    <td>${item.Année}</td>
+                    <td>${formatNumber(item.Valeur)}</td>
+                    <td>${assuranceBadge}</td>
+                    <td><span class="text-success fw-bold">${formatNumber(item.Prime_Base)}</span></td>
+                    <td><span class="badge bg-light text-dark">${item.Date_Souscription}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Animation des lignes
+            $(tbody).find('tr').each(function(index) {
+                $(this).addClass('animate__animated animate__fadeIn');
+                $(this).css('animation-delay', (index * 0.1) + 's');
+            });
+        }
+
+        // Générer les répartitions
+        function generateRepartitions(data) {
+            // Répartition par assurance
+            const assuranceCounts = {};
+            data.forEach(item => {
+                const type = item.Type_Assurance || 'Inconnu';
+                assuranceCounts[type] = (assuranceCounts[type] || 0) + 1;
+            });
+
+            const repartitionAssurance = document.getElementById('repartitionAssurance');
+            repartitionAssurance.innerHTML = '';
+
+            Object.entries(assuranceCounts).forEach(([type, count]) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'repartition-item';
+                const iconClass = type === 'Tous Risques' ? 'bi-shield-fill-check assurance-tous-risques' : 'bi-shield-check assurance-tier';
+                
+                itemDiv.innerHTML = `
+                    <i class="repartition-icon bi ${iconClass}"></i>
+                    <div class="repartition-count counter" data-target="${count}">0</div>
+                    <div class="repartition-label">${type}</div>
+                    <div class="repartition-label">contrats</div>
+                `;
+                repartitionAssurance.appendChild(itemDiv);
+            });
+
+            // Répartition par véhicule
+            const vehiculeCounts = {};
+            data.forEach(item => {
+                const type = item.Type_Vehicule || 'Inconnu';
+                vehiculeCounts[type] = (vehiculeCounts[type] || 0) + 1;
+            });
+
+            const repartitionVehicule = document.getElementById('repartitionVehicule');
+            repartitionVehicule.innerHTML = '';
+
+            Object.entries(vehiculeCounts).forEach(([type, count]) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'repartition-item';
+                const iconClass = getVehiculeIcon(type);
+                const color = getVehiculeColor(type);
+                
+                itemDiv.innerHTML = `
+                    <i class="repartition-icon bi ${iconClass}" style="color: ${color};"></i>
+                    <div class="repartition-count counter" data-target="${count}">0</div>
+                    <div class="repartition-label">${type}</div>
+                    <div class="repartition-label">contrats</div>
+                `;
+                repartitionVehicule.appendChild(itemDiv);
+            });
+
+            // Animer les compteurs de répartition
+            setTimeout(() => {
+                document.querySelectorAll('#repartitionAssurance .counter, #repartitionVehicule .counter').forEach(counter => {
+                    const target = parseInt(counter.getAttribute('data-target'));
+                    animateCounter(counter, target);
+                });
+                
+                // Totaux
+                const totalAssurance = Object.values(assuranceCounts).reduce((a, b) => a + b, 0);
+                const totalVehicules = Object.values(vehiculeCounts).reduce((a, b) => a + b, 0);
+                
+                animateCounter(document.getElementById('totalAssurance'), totalAssurance);
+                animateCounter(document.getElementById('totalVehicules'), totalVehicules);
+            }, 500);
+        }
+
+        // Fonctions utilitaires
+        function getVehiculeIcon(type) {
+            switch(type.toLowerCase()) {
+                case 'voiture': return 'bi-car-front-fill';
+                case 'moto': return 'bi-bicycle';
+                case 'camion': return 'bi-truck';
+                default: return 'bi-question-circle';
+            }
+        }
+
+        function getVehiculeColor(type) {
+            switch(type.toLowerCase()) {
+                case 'voiture': return '#0d6efd';
+                case 'moto': return '#dc3545';
+                case 'camion': return '#6f42c1';
+                default: return '#6c757d';
+            }
+        }
+
+        function getAssuranceBadge(type) {
+            if (type === 'Tous Risques') {
+                return '<span class="badge bg-success">Tous Risques</span>';
+            } else {
+                return '<span class="badge bg-warning text-dark">Tiers</span>';
+            }
+        }
+
+        // Mettre à jour les filtres
+        function updateFilters(data) {
+            villes.clear();
+            assurances.clear();
+            vehicules.clear();
+
+            data.forEach(item => {
+                if (item.Ville) villes.add(item.Ville);
+                if (item.Type_Assurance) assurances.add(item.Type_Assurance);
+                if (item.Type_Vehicule) vehicules.add(item.Type_Vehicule);
+            });
+
+            // Ville
+            const villeSelect = document.getElementById('ville');
+            villeSelect.innerHTML = '<option selected>Toutes les villes</option>';
+            villes.forEach(ville => {
+                const option = document.createElement('option');
+                option.value = ville;
+                option.textContent = ville;
+                villeSelect.appendChild(option);
+            });
+
+            // Assurance
+            const assuranceSelect = document.getElementById('typeAssurance');
+            assuranceSelect.innerHTML = '<option selected>Tous les types</option>';
+            assurances.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                assuranceSelect.appendChild(option);
+            });
+
+            // Véhicule
+            const vehiculeSelect = document.getElementById('typeVehicule');
+            vehiculeSelect.innerHTML = '<option selected>Tous les types</option>';
+            vehicules.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                vehiculeSelect.appendChild(option);
+            });
+        }
+
+        // Fonction de filtrage
+        function filterTable() {
+            let ville = $('#ville').val();
+            let typeAssurance = $('#typeAssurance').val();
+            let typeVehicule = $('#typeVehicule').val();
+
+            const filteredData = excelData.filter(item => {
+                const villeMatch = (ville === "Toutes les villes" || item.Ville === ville);
+                const assuranceMatch = (typeAssurance === "Tous les types" || item.Type_Assurance === typeAssurance);
+                const vehiculeMatch = (typeVehicule === "Tous les types" || item.Type_Vehicule === typeVehicule);
+
+                return villeMatch && assuranceMatch && vehiculeMatch;
+            });
+
+            generateTable(filteredData);
+            generateRepartitions(filteredData);
+            initCounters(filteredData);
+        }
+
+        // Traiter le fichier Excel
+        function processExcelFile(file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Prendre la première feuille
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    
+                    // Convertir en JSON
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    // Normaliser les données
+                    excelData = jsonData.map(item => ({
+                        Nom_Prénom: item['Nom_Prénom'] || item['Nom'] || item['Nom & Prénom'] || '',
+                        CIN: item['CIN'] || item['ID'] || '',
+                        Ville: item['Ville'] || item['City'] || '',
+                        Type_Vehicule: item['Type_Vehicule'] || item['Véhicule'] || item['Type'] || '',
+                        Marque: item['Marque'] || item['Brand'] || '',
+                        Année: item['Année'] || item['Year'] || '',
+                        Valeur: Number(item['Valeur']) || Number(item['Value']) || 0,
+                        Type_Assurance: item['Type_Assurance'] || item['Assurance'] || '',
+                        Prime_Base: Number(item['Prime_Base']) || Number(item['Prime']) || 0,
+                        Date_Souscription: item['Date_Souscription'] || item['Date'] || ''
+                    }));
+
+                    // Afficher les données
+                    $('#dataSection').addClass('show');
+                    updateFilters(excelData);
+                    generateTable(excelData);
+                    generateRepartitions(excelData);
+                    initCounters(excelData);
+
+                    // Afficher un message de succès
+                    showAlert('Fichier importé avec succès !', 'success');
+                    
+                } catch (error) {
+                    console.error('Erreur lors du traitement du fichier:', error);
+                    showAlert('Erreur lors de la lecture du fichier. Veuillez vérifier le format.', 'danger');
+                }
+            };
+            
+            reader.onerror = function() {
+                showAlert('Erreur lors de la lecture du fichier.', 'danger');
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Afficher une alerte
+        function showAlert(message, type) {
+            const alert = `<div class="alert alert-${type} alert-dismissible fade show animate__animated animate__fadeIn">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`;
+            $('.container').prepend(alert);
+            
+            setTimeout(() => {
+                $('.alert').addClass('animate__fadeOut');
+                setTimeout(() => $('.alert').remove(), 500);
+            }, 3000);
+        }
+
+        // Gestionnaires d'événements
+        $('#selectFileBtn').click(() => $('#fileInput').click());
+
+        $('#fileInput').change(function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                $('#fileName').text(file.name);
+                $('#fileSize').text(`(${(file.size / 1024).toFixed(2)} KB)`);
+                $('#fileInfo').addClass('show');
+                processExcelFile(file);
+            }
+        });
+
+        $('#removeFileBtn').click(() => {
+            $('#fileInput').val('');
+            $('#fileInfo').removeClass('show');
+            $('#dataSection').removeClass('show');
+            excelData = [];
+        });
+
+        // Drag and drop
+        const dropArea = document.getElementById('dropArea');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dropArea.classList.add('drag-over');
+        }
+
+        function unhighlight() {
+            dropArea.classList.remove('drag-over');
+        }
+
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.name.match(/\.(xlsx|xls|csv)$/)) {
+                    $('#fileName').text(file.name);
+                    $('#fileSize').text(`(${(file.size / 1024).toFixed(2)} KB)`);
+                    $('#fileInfo').addClass('show');
+                    processExcelFile(file);
+                } else {
+                    showAlert('Veuillez sélectionner un fichier Excel (.xlsx, .xls, .csv)', 'warning');
+                }
+            }
+        }
+
+        // Télécharger un exemple
+        $('#downloadSample').click(function() {
+            const ws = XLSX.utils.json_to_sheet(defaultData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Contrats");
+            XLSX.writeFile(wb, "exemple_contrats_assurance.xlsx");
+        });
+
+        // Réinitialiser les filtres
+        $('#resetFilters').click(function() {
+            $('#ville').val('Toutes les villes');
+            $('#typeAssurance').val('Tous les types');
+            $('#typeVehicule').val('Tous les types');
+            filterTable();
+            
+            $(this).addClass('animate__animated animate__shakeX');
+            setTimeout(() => {
+                $(this).removeClass('animate__animated animate__shakeX');
+            }, 1000);
+        });
+
+        // Appliquer le filtrage
+        $('#ville, #typeAssurance, #typeVehicule').change(filterTable);
+
+        // Charger les données d'exemple au démarrage
+        setTimeout(() => {
+            $('#downloadSample').click();
+            showAlert('Un fichier exemple a été téléchargé. Importez-le pour commencer.', 'info');
+        }, 1000);
+    });
+</script>
+
+</body>
+</html>
