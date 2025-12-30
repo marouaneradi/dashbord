@@ -108,7 +108,7 @@ Dashboard interactif pour la gestion d'une agence d'assurance automobile au Maro
 
 \# Clonez le repository
 
-git clone https://github.com/\[votre-username\]/assurance-auto-dashboard.git
+git clone https://github.com/marouaneradi/assurance-auto-dashboard.git
 
   
 
@@ -142,7 +142,7 @@ xdg-open index.html
 
 2. Activez GitHub Pages dans les paramètres
 
-3. Votre site sera disponible à : `https://\[votre-username\].github.io/assurance-auto-dashboard`
+3. Votre site sera disponible à : `https://marouaneradi.github.io/assurance-auto-dashboard`
 
   
 
@@ -218,9 +218,9 @@ assurance-auto-dashboard/
 │
 ├── index.html                    # Page principale
 ├── README.md                     # Documentation
-├── Aguezar_Ayoub.xlsx                      # Licence MIT
-├── Aguezar_Ayoub.ppdx                  # Ressources statiques
-│   Aguezar_Ayoub.pdf                    # Styles CSS
+├── radi-marouane.xlsx                      # Licence MIT
+├── radi-marouane.ppdx                  # Ressources statiques
+│   radi-marouane.pdf                    # Styles CSS
 │   
 
 
@@ -293,7 +293,7 @@ Les contributions sont les bienvenues ! Voici comment contribuer :
 2. **Clonez** votre fork :
 
 ```
-   git clone https://github.com/\[votre-username\]/assurance-auto-dashboard.git
+   git clone https://github.com/marouaneradi/dashbord.git
 ```
 
 3. **Créez une branche** pour votre fonctionnalité :
@@ -354,7 +354,7 @@ Ce projet est sous licence **MIT**. Voir le fichier (LICENSE) pour plus de déta
 
   
 
-**Étudiant :** \[Votre Nom\]  
+**Étudiant :** Radi marouane
 
 **Établissement :** ISTA Ouarzazate  
 
@@ -382,7 +382,7 @@ Ce projet est sous licence **MIT**. Voir le fichier (LICENSE) pour plus de déta
 
   
 
-- **Problèmes techniques** : \[Ouvrir une issue\](https://github.com/Ayoub-glitsh/assurance-auto-dashboard/tree/main)
+- **Problèmes techniques** : \[Ouvrir une issue\](https://github.com/marouaneradi/assurance-auto-dashboard/tree/main)
 
 - **Questions** : Consultez la section \[FAQ\](#)
 
@@ -396,11 +396,11 @@ Ce projet est sous licence **MIT**. Voir le fichier (LICENSE) pour plus de déta
 
 Pour toute question ou suggestion :
 
-- **Email** : ayoubaguezzar1@gmail.com
+- **Email** : radimarouane@gmail.com
 
-- **GitHub** : (https://github.com/Ayoub-glitsh)
+- **GitHub** : (https://github.com/marouaneradi)
 
-- **Site web** : \[votresite.com\](https://votresite.com)
+- **Site web** : https://marouaneweb.great-site.net/?i=1
 
   
 
@@ -413,10 +413,10 @@ Pour toute question ou suggestion :
 
 ### ⭐ Si ce projet vous a été utile, n'oubliez pas de mettre une étoile !
 
-  https://github.com/Ayoub-glitsh/assurance-auto-dashboard/edit/main/
+  https://github.com/marouaneradi/assurance-auto-dashboard/edit/main/
 
   
 
-**Développé par Ayoub Aguezar pour l'ISTA Ouarzazate**
+**Développé par Marouane Radi pour l'ISTA Ouarzazate**
 
   
