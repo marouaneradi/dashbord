@@ -154,8 +154,8 @@ xdg-open index.html
 
 | Colonne             | Description                   | Exemple                   |
 |---------------------|-------------------------------|---------------------------|
-| **Nom_Prénom**      | Nom complet du client          | El Amrani Youssef         |
-| **CIN**             | Carte d'identité nationale    | AB00001                   |
+| **Nom_Prénom**      | Nom complet du client          | Radi marouane        |
+| **CIN**             | Carte d'identité nationale    | AB00047                  |
 | **Ville**           | Ville du client                | Ouarzazate                |
 | **Type_Vehicule**   | Type de véhicule               | Voiture / Moto / Camion   |
 | **Marque**          | Marque du véhicule             | Renault                   |
